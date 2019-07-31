@@ -11,7 +11,7 @@ class App extends Component {
     this.state = {
       hasVoted: false,
       candidates: [],
-      selectedCandidate: 1,
+      selectedCandidate: 0,
       web3: null,
       accounts: null,
       contract: null
@@ -50,15 +50,13 @@ class App extends Component {
   };
 
   getCandidates() {
-    const { accounts, contract } = this.state;
-
-    contract.methods
+    this.state.contract.methods
       .getCandidatesCount()
       .call()
       .then(candidatesCount => {
         console.log("candidate counts: " + candidatesCount);
         for (let i = 0; i < candidatesCount; i++) {
-          contract.methods
+          this.state.contract.methods
             .getCandidate(i)
             .call()
             .then(candidate => {
@@ -66,7 +64,7 @@ class App extends Component {
               this.setState({
                 candidates: this.state.candidates.concat([
                   {
-                    id: candidate.id,
+                    id: i,
                     name: candidate.name,
                     voteCount: candidate.voteCount
                   }
@@ -85,17 +83,16 @@ class App extends Component {
     e.preventDefault()
     console.log("Voting for:" + this.state.selectedCandidate)
     this.state.contract.methods
-    // TODO! Bug something wrong with id
-    // Only value 1 is working and it's votting for Canditate 2
-      .vote(1)
+      .vote(this.state.selectedCandidate)
       .send({ from: this.state.accounts[0] })
       .on("receipt", function(receipt) {
-        console.log("receipt")
+        console.log("receipt");
         // TODO update UI after vote
-        this.getCandidates();
-        this.setState({ hasVoted: true });
+        console.log("UI update")
+        this.getCandidates(); //TODO not updating?
+        this.setState({ hasVoted: true }) //TODO not updating?
       })
-      .on('error', console.error);
+      .on("error", console.error);
   }
 
   handleChange(event){
@@ -129,8 +126,8 @@ class App extends Component {
 
              // TODO candidatesDropdown should be render dynamically
              let candidatesDropdown = [
-               <option value={1}>Canditate 1</option>,
-               <option value={2}>Canditate 2</option>
+               <option key={"v1"} value={0}>Canditate 1</option>,
+               <option key={"v2"} value={1}>Canditate 2</option>
              ];
              // let candidatesDropdown = this.state.candidates.map(_candidate => {
              //   this.renderCandidateDropdown(_candidate);
@@ -160,7 +157,7 @@ class App extends Component {
                      >
                        {candidatesDropdown}
                      </select>
-                     <button onClick={this.onSubmit}>Vote</button>
+                     <button disabled={this.state.hasVoted} onClick={this.onSubmit}>Vote</button>
                    </form>
                  </div>
                </div>

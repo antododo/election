@@ -3,7 +3,6 @@ pragma solidity ^0.5.10;
 contract Election {
     // Model a Candidate
     struct Candidate {
-        uint id;
         string name;
         uint voteCount;
     }
@@ -12,7 +11,6 @@ contract Election {
     mapping(address => bool) public voters;
     // Store Candidates
     Candidate[] private candidates;
-    uint private candidatesCount;
 
     // voted event
     event votedEvent (
@@ -25,20 +23,17 @@ contract Election {
     }
 
     function getCandidatesCount() public view returns(uint){
-       return candidatesCount;
-    //    return candidates.length;
+       return candidates.length;
     }
 
-    function getCandidate(uint i) public view returns(uint id, string memory name, uint voteCount){
-        Candidate memory _candidate = candidates[i];
-        id = _candidate.id;
+    function getCandidate(uint id) public view returns(string memory name, uint voteCount){
+        Candidate memory _candidate = candidates[id];
         name = _candidate.name;
         voteCount = _candidate.voteCount;
     }
 
     function addCandidate (string memory _name) private {
-        candidatesCount ++;
-        candidates.push(Candidate(candidatesCount, _name, 0));
+        candidates.push(Candidate(_name, 0));
     }
 
     function vote (uint _candidateId) public {
@@ -46,7 +41,7 @@ contract Election {
         require(!voters[msg.sender], "Voter can vote only once");
 
         // require a valid candidate
-        require((_candidateId > 0 && _candidateId <= candidatesCount),"You need to vote for a valid candidate");
+        require((_candidateId >= 0 && _candidateId < candidates.length),"You need to vote for a valid candidate");
 
         // record that voter has voted
         voters[msg.sender] = true;
